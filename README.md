@@ -1,5 +1,8 @@
 # vuebbs-webpack
 
+node v8.10.0
+npm 5.6.0
+
 > A Vue.js project
 
 ## Build Setup
