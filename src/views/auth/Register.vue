@@ -117,14 +117,16 @@ export default {
     },
 
     login(user) {
-      const localUser = ls.getItem("user");
+      // const localUser = ls.getItem("user");
       // console.info('localUser', localUser);
+      const localUser = this.$store.state.user;
       if (localUser && localUser.name === user.name) {
         this.showMsg("用户已存在");
         return;
       }
 
-      ls.setItem("user", user);
+      // ls.setItem("user", user);
+      this.$store.dispatch('login', user)
       this.showMsg("注册成功", "success");
     },
 
