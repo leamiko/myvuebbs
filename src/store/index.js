@@ -18,14 +18,14 @@ const mutations = {
         ls.setItem('user', user)
     },
 
-    [types.UPDATE_AUTH](state, auth){
+    [types.UPDATE_AUTH](state, auth) {
         state.auth = auth;
         ls.setItem('auth', auth)
     }
 }
 
 const actions = {
-    login({commit}, user) {
+    login({ commit }, user) {
         if (user) {
             commit(types.UPDATE_USER, user)
             commit(types.UPDATE_AUTH, true)
@@ -33,7 +33,7 @@ const actions = {
         }
     },
 
-    logout({commit}) {
+    logout({ commit }) {
         commit(types.UPDATE_AUTH, false)
         router.push({
             name: 'Home',
@@ -41,6 +41,15 @@ const actions = {
                 logout: true
             }
         })
+    },
+
+    // 更新用户信息
+    updateUser({ state, commit }, user) {
+        const stateUser = state.user
+        if (stateUser && typeof stateUser === 'Object') {
+            user = { ...stateUser, ...user } // 合并新旧个人信息，等价于 user = Object.assign({}, stateUser, user)
+        }
+        commit(types.UPDATE_USER, user)
     }
 }
 

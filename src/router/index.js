@@ -19,13 +19,15 @@ Vue.use(Router)
 
 const router = new Router({
     mode: 'history',
+    linkExactActiveClass: 'active',
     routes
 })
 
 router.beforeEach((to, from, next)=> {
     // router访问store
     const auth = router.app.$options.store.state.auth
-    if (auth && to.path.indexOf('/auth/') !== -1) {
+    if ((auth && to.path.indexOf('/auth/') !== -1) ||
+    (!auth && to.meta.auth)) {
         next('/')
     } else {
         next()
