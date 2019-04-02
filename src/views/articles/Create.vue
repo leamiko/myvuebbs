@@ -8,10 +8,12 @@
           <div data-validator-form>
             <div class="form-group">
               <input
-                v-validator.required="{ title: '标题' }"
+                v-model.trim="title"
+                v-validator.blur.required="{ title: '标题' }"
                 type="text"
                 class="form-control"
                 placeholder="请填写标题"
+                @input="saveTitle"
               >
             </div>
             <div class="form-group">
@@ -24,7 +26,7 @@
             </div>
             <br>
             <div class="form-group">
-              <button class="btn btn-primary" type="submit">发 布</button>
+              <button class="btn btn-primary" type="submit" @click="post">发 布</button>
             </div>
           </div>
         </div>
@@ -35,12 +37,21 @@
 
 <script>
 import SimpleMDE from "simplemde";
-import hljs from 'highlight.js'
+import hljs from "highlight.js";
+import ls from "@/utils/localStorage";
 
-window.hljs = hljs
+window.hljs = hljs;
 
 export default {
   name: "Create",
+
+  data() {
+    return {
+      title: "",
+      content: ""
+    };
+  },
+
   mounted() {
     const simplemde = new SimpleMDE({
       element: document.querySelector("#editor"),
@@ -56,6 +67,55 @@ export default {
         codeSyntaxHighlighting: true
       }
     });
+
+    simplemde.codemirror.on("change", () => {
+      this.content = simplemde.value();
+    });
+
+    this.simplemde = simplemde;
+    this.fillContent();
+  },
+
+  methods: {
+    saveTitle() {
+      ls.setItem("smde_title", this.title);
+    },
+
+    fillContent() {
+      const simplemde = this.simplemde;
+      const title = ls.getItem("smde_title");
+
+      // 如果 localStorage 有标题数据，使用它作为文章标题
+      if (title !== null) {
+        this.title = title;
+      }
+
+      // 使用编辑器的内容作为文章内容
+      this.content = simplemde.value();
+    },
+
+    post() {
+      const title = this.title;
+      const content = this.content;
+
+      if (title !== "" && content.trim() !== "") {
+        const article = {
+          title,
+          content
+        };
+
+        console.log(article);
+        this.$store.dispatch("post", { article });
+        this.clearData();
+      }
+    },
+
+    clearData() {
+      this.title = "";
+      ls.removeItem("smde_title");
+      this.simplemde.value("");
+      this.simplemde.clearAutosavedValue();
+    }
   }
 };
 </script>
