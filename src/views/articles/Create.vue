@@ -3,7 +3,7 @@
     <div class="blog-pages">
       <div class="col-md-12 panel">
         <div class="panel-body">
-          <h2 class="text-center">创作文章</h2>
+          <h2 class="text-center">{{ articleId ? '编辑文章' : '创作文章' }}</h2>
           <hr>
           <div data-validator-form>
             <div class="form-group">
@@ -47,9 +47,31 @@ export default {
 
   data() {
     return {
-      title: "",
-      content: ""
+      title: "", // 文章标题
+      content: "", // 文章内容
+      articleId: undefined // 文章id
     };
+  },
+
+  beforeRouteEnter(to, from, next) {
+    next(vm => {
+      console.log('beforeRouteEnter');
+      vm.setArticleId(vm.$route.params.articleId);
+    });
+  },
+
+  beforeRouteLeave(to, from, next) {
+     console.log('beforeRouteLeave');
+    this.clearData();
+    next();
+  },
+
+  watch: {
+    $route(to) {
+      console.log('$route变化了');
+      this.clearData();
+      this.setArticleId(to.params.articleId);
+    }
   },
 
   mounted() {
@@ -73,7 +95,6 @@ export default {
     });
 
     this.simplemde = simplemde;
-    this.fillContent();
   },
 
   methods: {
@@ -81,17 +102,24 @@ export default {
       ls.setItem("smde_title", this.title);
     },
 
-    fillContent() {
+    fillContent(articleId) {
       const simplemde = this.simplemde;
-      const title = ls.getItem("smde_title");
+      const smdeTitle = ls.getItem("smde_title");
 
-      // 如果 localStorage 有标题数据，使用它作为文章标题
-      if (title !== null) {
-        this.title = title;
+      if (articleId !== undefined) {
+        // 编辑
+        const article = this.$store.getters.getArticleById(articleId);
+        if (article) {
+          const { title, content } = article;
+          this.title = smdeTitle || title;
+          this.content = simplemde.value() || content;
+          simplemde.value(this.content);
+        }
+      } else {
+        // 新增
+        this.title = smdeTitle;
+        this.content = simplemde.value();
       }
-
-      // 使用编辑器的内容作为文章内容
-      this.content = simplemde.value();
     },
 
     post() {
@@ -105,7 +133,7 @@ export default {
         };
 
         console.log(article);
-        this.$store.dispatch("post", { article });
+        this.$store.dispatch("post", { article, articleId: this.articleId });
         this.clearData();
       }
     },
@@ -115,6 +143,17 @@ export default {
       ls.removeItem("smde_title");
       this.simplemde.value("");
       this.simplemde.clearAutosavedValue();
+    },
+
+    setArticleId(articleId) {
+      const localArticleId = ls.getItem("articleId");
+      if (articleId !== undefined && !(articleId === localArticleId)) {
+        this.clearData();
+      }
+
+      this.articleId = articleId;
+      this.fillContent(articleId);
+      ls.setItem("articleId", articleId);
     }
   }
 };

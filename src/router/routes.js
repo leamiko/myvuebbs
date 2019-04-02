@@ -50,6 +50,10 @@ const routes = [{
     path: '/articles/:articleId/content',
     name: 'Content',
     component: () => import('@/views/articles/Content')
+}, {
+    path: '/articles/:articleId/edit',
+    name: 'Edit',
+    component: () => import('@/views/articles/Create')
 }]
 
 export default routes
