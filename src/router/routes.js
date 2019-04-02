@@ -24,7 +24,28 @@ const routes = [{
         meta: {
             auth: true
         }
+    }, {
+        path: '/users/1/edit_avatar',
+        name: 'EditAvatar',
+        component: () => import('@/views/users/Avatar.vue'),
+        meta: {
+            auth: true
+        }
+    }, {
+        path: '/users/1/edit_password',
+        name: 'EditPassword',
+        component: () => import('@/views/users/Password.vue'),
+        meta: {
+            auth: true
+        }
     }]
+}, {
+    path: '/articles/create',
+    name: 'Create',
+    component: () => import('@/views/articles/Create'),
+    meta: {
+        auth: true
+    }
 }]
 
 export default routes
