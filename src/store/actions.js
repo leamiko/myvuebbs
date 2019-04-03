@@ -28,6 +28,15 @@ export const post = ({ commit, state }, { article, articleId }) => {
                 content,
                 date
             })
+        } else {
+            for (let article of articles) {
+                if (parseInt(article.articleId) === parseInt(articleId)) {
+                    article.title = title
+                    article.content = content
+                    article.date = date
+                    break;
+                }
+            }
         }
     }
 
@@ -40,4 +49,25 @@ export const post = ({ commit, state }, { article, articleId }) => {
         }
     })
 
+}
+
+
+export const deleteArticle = ({ commit, state }, { articleId }) => {
+    let articles = state.articles
+    if (!Array.isArray(articles)) articles = []
+
+    for (let article of articles) {
+        if (parseInt(article.articleId) === parseInt(articleId)) {
+            articles.splice(articles.indexOf(article), 1)
+            break
+        }
+    }
+
+    commit(types.UPDATE_ARTICLES, articles)
+    router.push({
+        name: 'Home',
+        params: {
+            showMsg: true
+        }
+    })
 }
