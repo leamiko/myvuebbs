@@ -135,7 +135,7 @@ export const comment = ({ commit, state }, { articleId, comment, commentId }) =>
                 const { uid = 1, content } = comment
                 const date = new Date()
 
-                if (commentId === undefined) {
+                if (commentId === undefined) { // 新增评论
                     const lastComment = comments[comments.length - 1]
 
                     // 新建 commentId
@@ -152,8 +152,25 @@ export const comment = ({ commit, state }, { articleId, comment, commentId }) =>
                         content,
                         date
                     })
+                } else { // 修改评论
+                    for (let comment of comments) {
+                        if (parseInt(comment.commentId) === parseInt(commentId)) {
+                            comment.content = content
+                            comment.date = date
+                            break
+                        }
+                    }
                 }
-            }
+            } else { // comment为null,进行删除
+                for (let comment of comments) {
+                  // 找到对应的评论时
+                  if (parseInt(comment.commentId) === parseInt(commentId)) {
+                    // 删除这条评论
+                    comments.splice(comments.indexOf(comment), 1)
+                    break
+                  }
+                }
+              }
 
             // 更新文章的评论列表
             article.comments = comments
