@@ -37,6 +37,10 @@
             <i class="fa fa-thumbs-up"></i>
             {{ likeClass ? '已赞' : '点赞' }}
           </a>
+          <div class="or"></div>
+          <button @click="showQrcode = true" class="btn btn-success">
+            <i class="fa fa-heart"></i> 打赏
+          </button>
         </div>
         <div class="voted-users">
           <div class="user-lists">
@@ -52,6 +56,97 @@
           <div v-if="!likeUsers.length" class="vote-hint">成为第一个点赞的人吧 ?</div>
         </div>
       </div>
+    </div>
+
+    <!-- 打赏弹窗 -->
+    <Modal :show.sync="showQrcode" class="text-center">
+      <div v-if="user" slot="title">
+        <img :src="user.avatar" class="img-thumbnail avatar" width="48">
+      </div>
+      <div>
+        <p class="text-md">如果你想学习更多前端的知识，VuejsCaff.com 是个不错的开始</p>
+        <div class="payment-qrcode inline-block">
+          <h5>扫一扫打开 VuejsCaff.com</h5>
+          <p>
+            <img
+              src="https://vuejscaffcdn.phphub.org/uploads/images/201803/25/2/g3CFVs0h7B.jpeg?imageView2/2/w/1024/h/0"
+              width="160"
+            >
+          </p>
+        </div>
+      </div>
+      <div slot="footer">
+        <div class="text-center">祝你学习愉快 :)</div>
+      </div>
+    </Modal>
+
+    <!-- 评论列表 -->
+    <div class="replies panel panel-default list-panel replies-index">
+      <div class="panel-heading">
+        <div class="total">
+          回复数量:
+          <b>{{ comments.length }}</b>
+        </div>
+      </div>
+      <div class="panel-body">
+        <transition-group name="fade" tag="ul"  id="reply-list" class="list-group row">
+          <li
+            v-for="(comment, index) in comments"
+            :key="comment.commentId"
+            class="list-group-item media"
+          >
+            <div class="avatar avatar-container pull-left">
+              <router-link :to="`/${comment.uname}`">
+                <img :src="comment.uavatar" class="media-object img-thumbnail avatar avatar-middle">
+              </router-link>
+            </div>
+            <div class="infos">
+              <div class="media-heading">
+                <router-link
+                  :to="`/${comment.uname}`"
+                  class="remove-padding-left author rm-link-color"
+                >{{ comment.uname }}</router-link>
+                <div class="meta">
+                  <a
+                    :id="`reply${index + 1}`"
+                    :href="`#reply${index + 1}`"
+                    class="anchor"
+                  >#{{ index + 1 }}</a>
+                  <span>⋅</span>
+                  <abbr class="timeago">{{ comment.date | moment('from', { startOf: 'second' }) }}</abbr>
+                </div>
+              </div>
+
+              <div class="preview media-body markdown-reply markdown-body" v-html="comment.content"></div>
+            </div>
+          </li>
+        </transition-group>
+        <div v-show="!comments.length" class="empty-block">暂无评论~~</div>
+      </div>
+    </div>
+
+    <!-- 评论框 -->
+    <div id="reply-box" class="reply-box form box-block">
+      <div class="form-group comment-editor">
+        <textarea v-if="auth" id="editor"></textarea>
+        <textarea
+          v-else
+          disabled
+          class="form-control"
+          placeholder="需要登录后才能发表评论."
+          style="height:172px"
+        ></textarea>
+      </div>
+      <div class="form-group reply-post-submit">
+        <button id="reply-btn" :disabled="!auth" @click="comment" class="btn btn-primary">回复</button>
+        <span class="help-inline">Ctrl+Enter</span>
+      </div>
+      <div
+        v-show="commentHtml"
+        id="preview-box"
+        class="box preview markdown-body"
+        v-html="commentHtml"
+      ></div>
     </div>
   </div>
 </template>
@@ -71,7 +166,10 @@ export default {
       date: "", // 创建时间
       uid: "", // 用户id
       likeUsers: [], // 点赞用户列表
-      likeClass: "" // 点赞样式
+      likeClass: "", // 点赞样式
+      showQrcode: false, // 是否显示打赏弹窗
+      commentHtml: "", // 评论 HTML
+      comments: [] // 评论列表
     };
   },
 
@@ -84,7 +182,7 @@ export default {
     const article = this.$store.getters.getArticleById(articleId);
 
     if (article) {
-      let { uid, title, content, date, likeUsers } = article;
+      let { uid, title, content, date, likeUsers, comments } = article;
 
       this.uid = uid;
       this.title = title;
@@ -99,6 +197,8 @@ export default {
         ? "active"
         : "";
 
+      this.renderComments(comments);
+
       this.$nextTick(() => {
         this.$el.querySelectorAll("pre code").forEach(el => {
           hljs.highlightBlock(el);
@@ -108,7 +208,68 @@ export default {
     this.articleId = articleId;
   },
 
+  mounted() {
+    // 已登录时，才开始创建
+    if (this.auth) {
+      // 自动高亮编辑器的内容
+      window.hljs = hljs;
+
+      const simplemde = new SimpleMDE({
+        element: document.querySelector("#editor"),
+        placeholder:
+          "请使用 Markdown 格式书写 ;-)，代码片段黏贴时请注意使用高亮语法。",
+        spellChecker: false,
+        autoDownloadFontAwesome: false,
+        // 不显示工具栏
+        toolbar: false,
+        // 不显示状态栏
+        status: false,
+        renderingConfig: {
+          codeSyntaxHighlighting: true
+        }
+      });
+
+      // 内容改变监听
+      simplemde.codemirror.on("change", () => {
+        // 更新 commentMarkdown 为编辑器的内容
+        this.commentMarkdown = simplemde.value();
+        // 更新 commentHtml，我们先替换原内容中的 emoji 标识，然后使用 markdown 方法将内容转成 HTML
+        this.commentHtml = simplemde.markdown(
+          emoji.emojify(this.commentMarkdown, name => name)
+        );
+      });
+
+      // 按键松开监听
+      simplemde.codemirror.on("keyup", (codemirror, event) => {
+        // 使用 Ctrl+Enter 时提交评论
+        if (event.ctrlKey && event.keyCode === 13) {
+          this.comment();
+        }
+      });
+
+      // 将编辑器添加到当前实例
+      this.simplemde = simplemde;
+    }
+  },
+
   methods: {
+    renderComments(comments = []) {
+      // 对象第一层深度拷贝
+      const newComments = comments.map(comment => ({ ...comment }));
+      const user = this.user || {};
+
+      for (let comment of newComments) {
+        comment.uname = user.name;
+        comment.uavatar = user.avatar;
+        comment.content = SimpleMDE.prototype.markdown(
+          emoji.emojify(comment.content, name => name)
+        );
+      }
+
+      this.comments = newComments;
+      // this.commentsMarkdown = comments; // ???????????
+    },
+
     editArticle() {
       this.$router.push({
         name: "Edit",
@@ -161,10 +322,38 @@ export default {
             this.likeUsers = likeUsers;
           });
       }
+    },
+
+    comment() {
+      // 编辑器的内容不为空时
+      if (this.commentMarkdown && this.commentMarkdown.trim() !== "") {
+        // 分发 comment 事件以提交评论
+        this.$store
+          .dispatch("comment", {
+            comment: { content: this.commentMarkdown },
+            articleId: this.articleId
+          })
+          .then(this.renderComments);
+
+        // 清空编辑器
+        this.simplemde.value("");
+        // 使回复按钮获得焦点
+        document.querySelector("#reply-btn").focus();
+
+        // 将最后的评论滚动到页面的顶部
+        this.$nextTick(() => {
+          const lastComment = document.querySelector(
+            "#reply-list li:last-child"
+          );
+          if (lastComment) lastComment.scrollIntoView(true);
+        });
+      }
     }
   }
 };
 </script>
 
 <style scoped>
+.fade-enter-active, .fade-leave-active { transition: opacity .5s;}
+.fade-enter, .fade-leave-to { opacity: 0;}
 </style>
