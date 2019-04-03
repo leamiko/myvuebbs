@@ -23,6 +23,36 @@
         </div>
       </div>
     </div>
+
+    <!-- 点赞 -->
+    <div class="votes-container panel panel-default padding-md">
+      <div class="panel-body vote-box text-center">
+        <div class="btn-group">
+          <a
+            @click="like"
+            href="javascript:;"
+            class="vote btn btn-primary popover-with-html"
+            :class="likeClass"
+          >
+            <i class="fa fa-thumbs-up"></i>
+            {{ likeClass ? '已赞' : '点赞' }}
+          </a>
+        </div>
+        <div class="voted-users">
+          <div class="user-lists">
+            <span v-for="likeUser in likeUsers" v-bind:key="likeUser.uid">
+              <!-- 点赞用户是当前用户时，加上类 animated 和 swing 以显示一个特别的动画  -->
+              <img
+                :src="user && user.avatar"
+                class="img-thumbnail avatar avatar-middle"
+                :class="{ 'animated swing' : likeUser.uid === 1 }"
+              >
+            </span>
+          </div>
+          <div v-if="!likeUsers.length" class="vote-hint">成为第一个点赞的人吧 ?</div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -39,7 +69,9 @@ export default {
       title: "", // 文章标题
       content: "", // 文章内容
       date: "", // 创建时间
-      uid: "" // 用户id
+      uid: "", // 用户id
+      likeUsers: [], // 点赞用户列表
+      likeClass: "" // 点赞样式
     };
   },
 
@@ -52,7 +84,7 @@ export default {
     const article = this.$store.getters.getArticleById(articleId);
 
     if (article) {
-      let { uid, title, content, date } = article;
+      let { uid, title, content, date, likeUsers } = article;
 
       this.uid = uid;
       this.title = title;
@@ -60,6 +92,12 @@ export default {
         emoji.emojify(content, name => name)
       );
       this.date = date;
+
+      this.likeUsers = likeUsers || [];
+
+      this.likeClass = this.likeUsers.some(likeUser => likeUser.uid === 1)
+        ? "active"
+        : "";
 
       this.$nextTick(() => {
         this.$el.querySelectorAll("pre code").forEach(el => {
@@ -91,6 +129,38 @@ export default {
           });
         }
       });
+    },
+
+    like(e) {
+      if (!this.auth) {
+        this.$swal({
+          text: "需要登录以后才能执行此操作",
+          confirmButtonText: "前往登录"
+        }).then(res => {
+          if (res.value) {
+            this.$router.push("/auth/login");
+          }
+        });
+        return;
+      }
+
+      const target = e.currentTarget;
+      const active = target.classList.contains("active");
+      const articleId = this.articleId;
+
+      if (active) {
+        this.likeClass = "";
+        this.$store.dispatch("like", { articleId }).then(likeUsers => {
+          this.likeUsers = likeUsers;
+        });
+      } else {
+        this.likeClass = "active animated rubberBand";
+        this.$store
+          .dispatch("like", { articleId, isAdd: true })
+          .then(likeUsers => {
+            this.likeUsers = likeUsers;
+          });
+      }
     }
   }
 };

@@ -71,3 +71,46 @@ export const deleteArticle = ({ commit, state }, { articleId }) => {
         }
     })
 }
+
+export const like = ({ commit, state }, { articleId, isAdd }) => {
+    let articles = state.articles
+    let likeUsers = []
+
+    // 用户 ID，默认为 1
+    const uid = 1
+
+    if (!Array.isArray(articles)) articles = []
+
+    for (let article of articles) {
+        if (parseInt(article.articleId) === parseInt(articleId)) {
+            likeUsers = Array.isArray(article.likeUsers) ? article.likeUsers : likeUsers
+            if (isAdd) {
+                // 是否已赞
+                const isAdded = likeUsers.some(likeUser => parseInt(likeUser.uid) === uid)
+
+                if (!isAdded) {
+                    // 在点赞用户列表中加入当前用户
+                    likeUsers.push({ uid })
+                }
+            } else {
+                for (let likeUser of likeUsers) {
+                    // 找到对应点赞用户时
+                    if (parseInt(likeUser.uid) === uid) {
+                        // 删除点赞用户
+                        likeUsers.splice(likeUsers.indexOf(likeUser), 1)
+                        break
+                    }
+                }
+            }
+
+            // 更新文章的点赞用户列表
+            article.likeUsers = likeUsers
+            break
+        }
+    }
+
+    // 提交 UPDATE_ARTICLES 以更新所有文章
+    commit('UPDATE_ARTICLES', articles)
+    // 返回点赞用户列表
+    return likeUsers
+}

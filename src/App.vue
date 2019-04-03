@@ -1,23 +1,23 @@
 <template>
   <div id="wrap">
-    <TheHeader />
+    <TheHeader/>
     <div id="main-container" class="container main-container">
-      <router-view />
+      <router-view/>
     </div>
     <TheFooter/>
   </div>
 </template>
 
 <script>
-import TheHeader from '@/components/layouts/TheHeader'
-import TheFooter from '@/components/layouts/TheFooter'
+import TheHeader from "@/components/layouts/TheHeader";
+import TheFooter from "@/components/layouts/TheFooter";
 export default {
-  name: 'App',
+  name: "App",
   components: {
     TheHeader,
     TheFooter
   }
-}
+};
 </script>
 
 <style lang="scss">
@@ -39,6 +39,6 @@ $fa-font-path: "~font-awesome/fonts/";
 @import "./assets/styles/main";
 @import "./assets/styles/extra";
 @import "simplemde/dist/simplemde.min.css";
-@import 'highlight.js/styles/paraiso-dark.css';
-
+@import "highlight.js/styles/paraiso-dark.css";
+@import "animate.css/animate.min.css"
 </style>
