@@ -46,11 +46,13 @@
           <div class="user-lists">
             <span v-for="likeUser in likeUsers" v-bind:key="likeUser.uid">
               <!-- 点赞用户是当前用户时，加上类 animated 和 swing 以显示一个特别的动画  -->
-              <img
-                :src="user && user.avatar"
+              <router-link
+                :to="`/${likeUser.uname}`"
+                :src="likeUser.uavatar"
+                tag="img"
                 class="img-thumbnail avatar avatar-middle"
                 :class="{ 'animated swing' : likeUser.uid === 1 }"
-              >
+              ></router-link>
             </span>
           </div>
           <div v-if="!likeUsers.length" class="vote-hint">成为第一个点赞的人吧 ?</div>
@@ -282,20 +284,36 @@ export default {
 
   methods: {
     renderComments(comments = []) {
-      // 对象第一层深度拷贝
-      const newComments = comments.map(comment => ({ ...comment }));
-      const user = this.user || {};
+      // // 对象第一层深度拷贝
+      // const newComments = comments.map(comment => ({ ...comment }));
+      // const user = this.user || {};
 
-      for (let comment of newComments) {
-        comment.uname = user.name;
-        comment.uavatar = user.avatar;
-        comment.content = SimpleMDE.prototype.markdown(
-          emoji.emojify(comment.content, name => name)
-        );
+      // for (let comment of newComments) {
+      //   comment.uname = user.name;
+      //   comment.uavatar = user.avatar;
+      //   comment.content = SimpleMDE.prototype.markdown(
+      //     emoji.emojify(comment.content, name => name)
+      //   );
+      // }
+
+      // this.comments = newComments;
+      // this.commentsMarkdown = comments; // 格式化的评论列表，用于编辑
+      if (Array.isArray(comments)) {
+        // 使用带用户信息的评论
+        comments = this.recompute("comments");
+        const newComments = comments.map(comment => ({ ...comment }));
+        const user = this.user || {};
+
+        for (let comment of newComments) {
+          // 这里删除了 uname 和 uavatar 的重新赋值，因为已经有这两个数据了
+          comment.content = SimpleMDE.prototype.markdown(
+            emoji.emojify(comment.content, name => name)
+          );
+        }
+
+        this.comments = newComments;
+        this.commentsMarkdown = comments;
       }
-
-      this.comments = newComments;
-      this.commentsMarkdown = comments; // 格式化的评论列表，用于编辑
     },
 
     editArticle() {
@@ -340,14 +358,14 @@ export default {
       if (active) {
         this.likeClass = "";
         this.$store.dispatch("like", { articleId }).then(likeUsers => {
-          this.likeUsers = likeUsers;
+          this.likeUsers = this.recompute("likeUsers");
         });
       } else {
         this.likeClass = "active animated rubberBand";
         this.$store
           .dispatch("like", { articleId, isAdd: true })
           .then(likeUsers => {
-            this.likeUsers = likeUsers;
+            this.likeUsers = this.recompute("likeUsers");
           });
       }
     },
@@ -443,6 +461,20 @@ export default {
           this.cancelEditComment();
         }
       });
+    },
+
+    // 返回带用户信息的文章的某项属性
+    recompute(key) {
+      const articleId = this.$route.params.articleId;
+      // 这里的文章是基于 getters.computedArticles 的，所以包含用户信息了
+      const article = this.$store.getters.getArticleById(articleId);
+      let arr;
+
+      if (article) {
+        arr = article[key];
+      }
+
+      return arr || [];
     }
   }
 };

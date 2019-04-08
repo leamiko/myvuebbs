@@ -5,6 +5,7 @@ import router from '@/router'
 import * as types from './mutation-types'
 // import router from '../router'
 import * as moreActions from './actions'
+import * as moreGetters from './getters'
 
 Vue.use(Vuex)
 
@@ -23,7 +24,10 @@ const getters = {
         } else {
             return null
         }
-    }
+    },
+
+    // 混入 moreGetters, 你可以理解为 getters = Object.assign(getters, moreGetters)
+    ...moreGetters
 }
 
 const mutations = {

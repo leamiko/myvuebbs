@@ -5,6 +5,7 @@ const routes = [{
 }, {
     path: '/',
     name: 'Home',
+    alias: '/topics',
     component: () => import('@/views/Home')
 }, {
     path: '*',
