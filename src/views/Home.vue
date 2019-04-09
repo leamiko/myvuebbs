@@ -61,11 +61,13 @@
         </div>
       </div>
     </div>
+    <TheSidebar/>
   </div>
 </template>
 
 <script>
 import { mapState } from "vuex";
+import TheSidebar from '@/components/layouts/TheSidebar'
 
 export default {
   name: "Home",
@@ -87,6 +89,10 @@ export default {
       total: 0, // 文章总数
       pageSize: 10 // 每页条数
     };
+  },
+
+  components: {
+    TheSidebar
   },
 
   computed: {
