@@ -12,12 +12,14 @@ Vue.use(Vuex)
 const state = {
     user: ls.getItem('user'),
     auth: ls.getItem('auth'),
-    articles: ls.getItem('articles')
+    articles: ls.getItem('articles'),
+    searchValue: '',
+    origin: location.origin.indexOf('github.io') !== -1 ? `${location.origin}/vuejs-essential/dist` : location.origin
 }
 
 const getters = {
-    getArticleById: (state) => (id) => {
-        let articles = state.articles
+    getArticleById: (state, getters) => (id) => {
+        let articles = getters.computedArticles
         if (Array.isArray(articles)) {
             articles = articles.filter(article => parseInt(id) === parseInt(article.articleId))
             return articles.length ? articles[0] : null
@@ -45,6 +47,10 @@ const mutations = {
         state.articles = articles;
         ls.setItem('articles', articles)
     },
+
+    [types.UPDATE_SEARCH_VALUE](state, searchValue) {
+        state.searchValue = searchValue
+    }
 }
 
 const actions = {

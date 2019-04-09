@@ -55,20 +55,20 @@ export default {
 
   beforeRouteEnter(to, from, next) {
     next(vm => {
-      console.log('beforeRouteEnter');
+      console.log("beforeRouteEnter");
       vm.setArticleId(vm.$route.params.articleId);
     });
   },
 
   beforeRouteLeave(to, from, next) {
-     console.log('beforeRouteLeave');
+    console.log("beforeRouteLeave");
     this.clearData();
     next();
   },
 
   watch: {
     $route(to) {
-      console.log('$route变化了');
+      console.log("$route变化了");
       this.clearData();
       this.setArticleId(to.params.articleId);
     }

@@ -15,15 +15,24 @@
         </router-link>
       </div>
 
-      <div id="top-navbar-collapse" class="collapse navbar-collapse" :class="{in: showCollapsedNav}">
+      <div
+        id="top-navbar-collapse"
+        class="collapse navbar-collapse"
+        :class="{in: showCollapsedNav}"
+      >
         <ul class="nav navbar-nav">
-          <li v-for="(item, index) in navList" :class="{ active: index === activeNavIndex }">
+          <li
+            v-for="(item, index) in navList"
+            :key="index"
+            :class="{ active: index === activeNavIndex }"
+          >
             <a href="#" @click="changeNavIndex(index)">{{ item }}</a>
           </li>
         </ul>
 
         <div class="navbar-right">
-          <TheEntry />
+          <SearchInput/>
+          <TheEntry/>
         </div>
       </div>
     </div>
@@ -31,7 +40,9 @@
 </template>
 
 <script>
-import TheEntry from '@/components/layouts/TheEntry'
+import TheEntry from "@/components/layouts/TheEntry";
+import SearchInput from "@/components/SearchInput";
+
 export default {
   name: "TheHeader",
   data() {
@@ -40,7 +51,7 @@ export default {
         src: `${this.uploadsUrl}sites/ByvFbNlQYVwhvTyBgLdqitchoacDNznN.jpg`,
         title: "VuejsCaff"
       },
-      navList: ['社区', '头条', '问答', '教程'],
+      navList: ["社区", "头条", "问答", "教程"],
       activeNavIndex: 0,
       showCollapsedNav: false
     };
@@ -50,14 +61,15 @@ export default {
   },
   methods: {
     changeNavIndex(index) {
-      this.activeNavIndex = index
+      this.activeNavIndex = index;
     },
     toggleNav() {
-      this.showCollapsedNav = !this.showCollapsedNav
+      this.showCollapsedNav = !this.showCollapsedNav;
     }
   },
   components: {
-    TheEntry
+    TheEntry,
+    SearchInput
   }
 };
 </script>
@@ -67,6 +79,6 @@ export default {
   display: none;
 }
 .navbar-default .navbar-nav > .active > a {
-  background: rgba(0,0,0,.03);
+  background: rgba(0, 0, 0, 0.03);
 }
 </style>

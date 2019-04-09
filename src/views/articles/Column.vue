@@ -84,7 +84,7 @@ export default {
 
       if (article) {
         this.userName = article.uname;
-        this.userAvatar = article.uavater;
+        this.userAvatar = article.uavatar;
         this.articles = this.$store.getters.getArticlesByUid(
           null,
           article.uname

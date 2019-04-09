@@ -189,7 +189,7 @@ export default {
       title: "", // 文章标题
       content: "", // 文章内容
       date: "", // 创建时间
-      uid: "", // 用户id
+      uid: 1, // 用户id
       likeUsers: [], // 点赞用户列表
       likeClass: "", // 点赞样式
       showQrcode: false, // 是否显示打赏弹窗
